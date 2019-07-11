@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{95158FF1-8097-40BB-ADE7-04AFC5E53E67}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Intersect_Character_Generator</RootNamespace>
+    <RootNamespace>Intersect.CharacterGenerator</RootNamespace>
     <AssemblyName>Intersect Character Generator</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -44,6 +44,9 @@
     <Reference Include="DarkUI">
       <HintPath>.\DarkUI.dll</HintPath>
     </Reference>
+    <Reference Include="JetBrains.Annotations, Version=2019.1.3.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.2019.1.3\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -69,6 +72,7 @@
     </Compile>
     <Compile Include="Layer.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Project.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="frmGenerator.resx">
       <DependentUpon>frmGenerator.cs</DependentUpon>

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Intersect_Character_Generator
+namespace Intersect.CharacterGenerator
 {
     static class Program
     {
@@ -16,7 +13,7 @@ namespace Intersect_Character_Generator
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmGenerator());
+            Application.Run(FrmGenerator.Current);
         }
     }
 }

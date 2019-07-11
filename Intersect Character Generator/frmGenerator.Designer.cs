@@ -1,6 +1,6 @@
-﻿namespace Intersect_Character_Generator
+﻿namespace Intersect.CharacterGenerator
 {
-    partial class frmGenerator
+    partial class FrmGenerator
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGenerator));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmGenerator));
             this.menuStrip = new DarkUI.Controls.DarkMenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1705,10 +1705,10 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip;
             this.MinimumSize = new System.Drawing.Size(600, 726);
-            this.Name = "frmGenerator";
+            this.Name = "FrmGenerator";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Intersect Character Generator";
-            this.Load += new System.EventHandler(this.frmGenerator_Load);
+            this.Load += new System.EventHandler(this.FrmGenerator_Load);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.grpOptions.ResumeLayout(false);

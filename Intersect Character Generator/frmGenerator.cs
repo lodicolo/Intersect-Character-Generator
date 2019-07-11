@@ -1,72 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Newtonsoft.Json;
 using System.IO;
+using System.Windows.Forms;
+using Intersect_Character_Generator;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
 
-namespace Intersect_Character_Generator
+namespace Intersect.CharacterGenerator
 {
-    public partial class frmGenerator : Form
+    public partial class FrmGenerator : Form
     {
-        public static frmGenerator Current;
+        private const string FORMAT_IMAGE_PNG = "PNG Image|*.png";
+        private const string FORMAT_PROJECT_GENERATOR = "Intersect Character Generator Project File |*.iprj";
 
-        //Temporary Variables
-        private Project _project = new Project();
-        private bool _drawing = false;
-        private List<Layer> _layers = new List<Layer>();
-        private SaveFileDialog _saveSpriteDialog;
-        private SaveFileDialog _saveProjectDialog;
-        private OpenFileDialog _openProjectDialog;
-        private Random _rand = new Random();
+        [NotNull] public static FrmGenerator Current { get; private set; }
 
-        public frmGenerator()
+        static FrmGenerator()
         {
-            InitializeComponent();
-            Current = this;
+            FrmGenerator.Current = new FrmGenerator();
         }
 
-        private void frmGenerator_Load(object sender, EventArgs e)
+        #region Temporary Variables
+
+        private SaveFileDialog mSaveSpriteDialog;
+        private SaveFileDialog mSaveProjectDialog;
+        private OpenFileDialog mOpenProjectDialog;
+
+        [NotNull] private readonly Project mProject = new Project();
+        [NotNull] public readonly List<Layer> mLayers = new List<Layer>();
+        [NotNull] private readonly Random mRandom = new Random();
+
+        #endregion
+
+        public FrmGenerator()
         {
-            _layers.Add(new Layer("bodies", cmbBody, btnBodyHue, colorDialog, trkBodyHueIntensity, trkBodyAlpha, picBodyLock, this));
-            _layers.Add(new Layer("eyes", cmbEyes, btnEyesHue, colorDialog, trkEyesHueIntensity, trkEyesAlpha, picEyesLock, this));
-            _layers.Add(new Layer("hair", cmbHair, btnHairHue, colorDialog, trkHairHueIntensity, trkHairAlpha, picHairLock, this));
-            _layers.Add(new Layer("facialhair", cmbFacialHair, btnFacialHairHue, colorDialog, trkFacialHairHueIntensity, trkFacialHairAlpha, picFacialHairLock, this));
-            _layers.Add(new Layer("headwear", cmbHeadwear, btnHeadwearHue, colorDialog, trkHeadwearHueIntensity, trkHeadwearAlpha, picHeadwearLock, this));
-            _layers.Add(new Layer("shirt", cmbShirt, btnShirtHue, colorDialog, trkShirtHueIntensity, trkShirtAlpha, picShirtLock, this));
-            _layers.Add(new Layer("shoulders", cmbShoulders, btnShouldersHue, colorDialog, trkShouldersHueIntensity, trkShouldersAlpha, picShouldersLock, this));
-            _layers.Add(new Layer("gloves", cmbGloves, btnGlovesHue, colorDialog, trkGlovesHueIntensity, trkGlovesAlpha, picGlovesLock, this));
-            _layers.Add(new Layer("pants", cmbPants, btnPantsHue, colorDialog, trkPantsHueIntensity, trkPantsAlpha, picPantsLock, this));
-            _layers.Add(new Layer("waist", cmbWaist, btnWaistHue, colorDialog, trkWaistHueIntensity, trkWaistAlpha, picWaistLock, this));
-            _layers.Add(new Layer("boots", cmbBoots, btnBootsHue, colorDialog, trkBootsHueIntensity, trkBootsAlpha, picBootsLock, this));
-            _layers.Add(new Layer("accessories", cmbAccessory1, btnBootsHue, colorDialog, trkAccessory1HueIntensity, trkAccessory1Alpha, picAccessory1Lock, this));
-            _layers.Add(new Layer("accessories", cmbAccessory2, btnBootsHue, colorDialog, trkAccessory2HueIntensity, trkAccessory2Alpha, picAccessory2Lock, this));
-            _layers.Add(new Layer("accessories", cmbAccessory3, btnBootsHue, colorDialog, trkAccessory3HueIntensity, trkAccessory3Alpha, picAccessory3Lock, this));
-            _layers.Add(new Layer("accessories", cmbAccessory4, btnBootsHue, colorDialog, trkAccessory4HueIntensity, trkAccessory4Alpha, picAccessory4Lock, this));
+            InitializeComponent();
+        }
 
-            _saveSpriteDialog = new SaveFileDialog();
-            _saveSpriteDialog.Filter = "PNG Image|*.png";
-            _saveSpriteDialog.Title = "Save Sprite";
-            _saveSpriteDialog.RestoreDirectory = true;
+        private void FrmGenerator_Load(object sender, EventArgs e)
+        {
+            mLayers.Add(new Layer("bodies", cmbBody, btnBodyHue, colorDialog, trkBodyHueIntensity, trkBodyAlpha, picBodyLock, this));
+            mLayers.Add(new Layer("eyes", cmbEyes, btnEyesHue, colorDialog, trkEyesHueIntensity, trkEyesAlpha, picEyesLock, this));
+            mLayers.Add(new Layer("hair", cmbHair, btnHairHue, colorDialog, trkHairHueIntensity, trkHairAlpha, picHairLock, this));
+            mLayers.Add(new Layer("facialhair", cmbFacialHair, btnFacialHairHue, colorDialog, trkFacialHairHueIntensity, trkFacialHairAlpha, picFacialHairLock, this));
+            mLayers.Add(new Layer("headwear", cmbHeadwear, btnHeadwearHue, colorDialog, trkHeadwearHueIntensity, trkHeadwearAlpha, picHeadwearLock, this));
+            mLayers.Add(new Layer("shirt", cmbShirt, btnShirtHue, colorDialog, trkShirtHueIntensity, trkShirtAlpha, picShirtLock, this));
+            mLayers.Add(new Layer("shoulders", cmbShoulders, btnShouldersHue, colorDialog, trkShouldersHueIntensity, trkShouldersAlpha, picShouldersLock, this));
+            mLayers.Add(new Layer("gloves", cmbGloves, btnGlovesHue, colorDialog, trkGlovesHueIntensity, trkGlovesAlpha, picGlovesLock, this));
+            mLayers.Add(new Layer("pants", cmbPants, btnPantsHue, colorDialog, trkPantsHueIntensity, trkPantsAlpha, picPantsLock, this));
+            mLayers.Add(new Layer("waist", cmbWaist, btnWaistHue, colorDialog, trkWaistHueIntensity, trkWaistAlpha, picWaistLock, this));
+            mLayers.Add(new Layer("boots", cmbBoots, btnBootsHue, colorDialog, trkBootsHueIntensity, trkBootsAlpha, picBootsLock, this));
+            mLayers.Add(new Layer("accessories", cmbAccessory1, btnBootsHue, colorDialog, trkAccessory1HueIntensity, trkAccessory1Alpha, picAccessory1Lock, this));
+            mLayers.Add(new Layer("accessories", cmbAccessory2, btnBootsHue, colorDialog, trkAccessory2HueIntensity, trkAccessory2Alpha, picAccessory2Lock, this));
+            mLayers.Add(new Layer("accessories", cmbAccessory3, btnBootsHue, colorDialog, trkAccessory3HueIntensity, trkAccessory3Alpha, picAccessory3Lock, this));
+            mLayers.Add(new Layer("accessories", cmbAccessory4, btnBootsHue, colorDialog, trkAccessory4HueIntensity, trkAccessory4Alpha, picAccessory4Lock, this));
 
-            _saveProjectDialog = new SaveFileDialog();
-            _saveProjectDialog.Filter = "Intersect Character Generator Project File |*.iprj";
-            _saveProjectDialog.Title = "Save Intersect Character Generator Project";
-            _saveProjectDialog.RestoreDirectory = true;
+            mSaveSpriteDialog = new SaveFileDialog
+            {
+                Filter = FORMAT_IMAGE_PNG,
+                Title = "Save Sprite",
+                RestoreDirectory = true
+            };
 
-            _openProjectDialog = new OpenFileDialog();
-            _openProjectDialog.Filter = "Intersect Character Generator Project File |*.iprj";
-            _openProjectDialog.Title = "Select your project file";
-            _openProjectDialog.RestoreDirectory = true;
+            mSaveProjectDialog = new SaveFileDialog
+            {
+                Filter = FORMAT_PROJECT_GENERATOR,
+                Title = "Save Intersect Character Generator Project",
+                RestoreDirectory = true
+            };
+
+            mOpenProjectDialog = new OpenFileDialog
+            {
+                Filter = FORMAT_PROJECT_GENERATOR,
+                Title = "Select your project file",
+                RestoreDirectory = true
+            };
 
             DrawCharacter();
         }
 
+        public Layer FindLayer(NamedLayers namedLayer) => mLayers[(int)namedLayer];
 
         #region "Controls"
         private void btnColor_Click(object sender, EventArgs e)
@@ -81,7 +95,7 @@ namespace Intersect_Character_Generator
 
         private void rdoMale_CheckedChanged(object sender, EventArgs e)
         {
-            foreach (var layer in _layers)
+            foreach (var layer in mLayers)
             {
                 layer.PopulateList(rdoMale.Checked);
             }
@@ -99,13 +113,13 @@ namespace Intersect_Character_Generator
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            _saveSpriteDialog.ShowDialog();
+            mSaveSpriteDialog.ShowDialog();
 
             // If the file name is not an empty string open it for saving.  
-            if (_saveSpriteDialog.FileName != "")
+            if (mSaveSpriteDialog.FileName != "")
             {
                 var sprite = RenderCharacter(!chkTransparent.Checked);
-                sprite.Save(_saveSpriteDialog.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                sprite.Save(mSaveSpriteDialog.FileName, System.Drawing.Imaging.ImageFormat.Png);
                 sprite.Dispose();
             }
         }
@@ -115,19 +129,19 @@ namespace Intersect_Character_Generator
             var maleChecked = rdoMale.Checked;
             if (picGenderLock.Tag == null)
             {
-                rdoMale.Checked = _rand.Next(0, 2) == 1;
+                rdoMale.Checked = mRandom.Next(0, 2) == 1;
                 rdoFemale.Checked = !rdoMale.Checked;
             }
             if (maleChecked != rdoMale.Checked)
             {
-                foreach (var layer in _layers)
+                foreach (var layer in mLayers)
                 {
                     layer.PopulateList(rdoMale.Checked);
                 }
             }
-            foreach (var layer in _layers)
+            foreach (var layer in mLayers)
             {
-                layer.Randomize(_rand);
+                layer.Randomize(mRandom);
             }
         }
 
@@ -156,33 +170,33 @@ namespace Intersect_Character_Generator
         }
         private void saveStateAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _saveProjectDialog.ShowDialog();
+            mSaveProjectDialog.ShowDialog();
 
             // If the file name is not an empty string open it for saving.  
-            if (_saveProjectDialog.FileName != "")
+            if (mSaveProjectDialog.FileName != "")
             {
-                _project.ProjectPath = _saveProjectDialog.FileName;
-                var json = JsonConvert.SerializeObject(_project, Formatting.Indented);
-                File.WriteAllText(_saveProjectDialog.FileName, json);
+                mProject.ProjectPath = mSaveProjectDialog.FileName;
+                var json = JsonConvert.SerializeObject(mProject, Formatting.Indented);
+                File.WriteAllText(mSaveProjectDialog.FileName, json);
             }
         }
         private void openStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (_openProjectDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (mOpenProjectDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var json = File.ReadAllText(_openProjectDialog.FileName);
-                JsonConvert.PopulateObject(json, _project, new JsonSerializerSettings() { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                _project.ProjectPath = _openProjectDialog.FileName;
-                this.Text = "Intersect Character Generator - " + _project.ProjectPath;
+                var json = File.ReadAllText(mOpenProjectDialog.FileName);
+                JsonConvert.PopulateObject(json, mProject, new JsonSerializerSettings() { ObjectCreationHandling = ObjectCreationHandling.Replace });
+                mProject.ProjectPath = mOpenProjectDialog.FileName;
+                this.Text = "Intersect Character Generator - " + mProject.ProjectPath;
                 DrawCharacter();
             }
         }
 
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var json = JsonConvert.SerializeObject(_project, Formatting.Indented);
-            File.WriteAllText(_project.ProjectPath, json);
-            this.Text = "Intersect Character Generator - " + _project.ProjectPath;
+            var json = JsonConvert.SerializeObject(mProject, Formatting.Indented);
+            File.WriteAllText(mProject.ProjectPath, json);
+            this.Text = "Intersect Character Generator - " + mProject.ProjectPath;
         }
         #endregion
 
@@ -206,10 +220,10 @@ namespace Intersect_Character_Generator
             //figure out size...
             var maxW = 0;
             var maxH = 0;
-            foreach (var layer in _layers)
+            foreach (var layer in mLayers)
             {
-                if (layer.GetWidth() > maxW) maxW = layer.GetWidth();
-                if (layer.GetHeight() > maxH) maxH = layer.GetHeight();
+                if (layer.Width> maxW) maxW = layer.Width;
+                if (layer.Height> maxH) maxH = layer.Height;
             }
 
             if (maxW > 0) size.Width = maxW;
@@ -222,7 +236,7 @@ namespace Intersect_Character_Generator
             {
                 if (chkTransparent.Checked)
                 {
-                    var transTile = Intersect_Character_Generator.Properties.Resources.transtile;
+                    var transTile = Properties.Resources.transtile;
                     for (int x = 0; x < size.Width / transTile.Width + 1; x++)
                     {
                         for (int y = 0; y < size.Height / transTile.Height + 1; y++)
@@ -242,30 +256,30 @@ namespace Intersect_Character_Generator
         }
         private void RenderLayers(Graphics g, Size size)
         {
-            if (_layers.Count >= 15)
+            if (mLayers.Count >= 15)
             {
-                _layers[0].Draw(g, size.Width / 4, size.Height / 4); //Base
-                _layers[1].Draw(g, size.Width / 4, size.Height / 4); //Eyes
-                _layers[2].Draw(g, size.Width / 4, size.Height / 4); //Hair
-                _layers[3].Draw(g, size.Width / 4, size.Height / 4); //Facial Hair
-                _layers[4].Draw(g, size.Width / 4, size.Height / 4); //Headwear
+                mLayers[0].Draw(g, size.Width / 4, size.Height / 4); //Base
+                mLayers[1].Draw(g, size.Width / 4, size.Height / 4); //Eyes
+                mLayers[2].Draw(g, size.Width / 4, size.Height / 4); //Hair
+                mLayers[3].Draw(g, size.Width / 4, size.Height / 4); //Facial Hair
+                mLayers[4].Draw(g, size.Width / 4, size.Height / 4); //Headwear
                 if (chkPantsAfterShirt.Checked)
                 {
                     //Draw shirt before pants
-                    _layers[5].Draw(g, size.Width / 4, size.Height / 4); //Shirt
-                    _layers[6].Draw(g, size.Width / 4, size.Height / 4); //Shoulders
-                    _layers[7].Draw(g, size.Width / 4, size.Height / 4); //Gloves          
+                    mLayers[5].Draw(g, size.Width / 4, size.Height / 4); //Shirt
+                    mLayers[6].Draw(g, size.Width / 4, size.Height / 4); //Shoulders
+                    mLayers[7].Draw(g, size.Width / 4, size.Height / 4); //Gloves          
                     if (chkBootsAfterPants.Checked)
                     {
-                        _layers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
-                        _layers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
-                        _layers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
+                        mLayers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
+                        mLayers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
+                        mLayers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
                     }
                     else
                     {
-                        _layers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
-                        _layers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
-                        _layers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
+                        mLayers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
+                        mLayers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
+                        mLayers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
                     }
                 }
                 else
@@ -273,24 +287,24 @@ namespace Intersect_Character_Generator
                     //Draw pants then shirt
                     if (chkBootsAfterPants.Checked)
                     {
-                        _layers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
-                        _layers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
-                        _layers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
+                        mLayers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
+                        mLayers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
+                        mLayers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
                     }
                     else
                     {
-                        _layers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
-                        _layers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
-                        _layers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
+                        mLayers[10].Draw(g, size.Width / 4, size.Height / 4); //Boots
+                        mLayers[8].Draw(g, size.Width / 4, size.Height / 4); //Pants
+                        mLayers[9].Draw(g, size.Width / 4, size.Height / 4); //Waist
                     }
-                    _layers[5].Draw(g, size.Width / 4, size.Height / 4); //Shirt
-                    _layers[6].Draw(g, size.Width / 4, size.Height / 4); //Shoulders
-                    _layers[7].Draw(g, size.Width / 4, size.Height / 4); //Gloves
+                    mLayers[5].Draw(g, size.Width / 4, size.Height / 4); //Shirt
+                    mLayers[6].Draw(g, size.Width / 4, size.Height / 4); //Shoulders
+                    mLayers[7].Draw(g, size.Width / 4, size.Height / 4); //Gloves
                 }
-                _layers[11].Draw(g, size.Width / 4, size.Height / 4); //Accessory 1
-                _layers[12].Draw(g, size.Width / 4, size.Height / 4); //Accessory 2
-                _layers[13].Draw(g, size.Width / 4, size.Height / 4); //Accessory 3
-                _layers[14].Draw(g, size.Width / 4, size.Height / 4); //Accessory 4
+                mLayers[11].Draw(g, size.Width / 4, size.Height / 4); //Accessory 1
+                mLayers[12].Draw(g, size.Width / 4, size.Height / 4); //Accessory 2
+                mLayers[13].Draw(g, size.Width / 4, size.Height / 4); //Accessory 3
+                mLayers[14].Draw(g, size.Width / 4, size.Height / 4); //Accessory 4
             }
         }
 
@@ -298,177 +312,8 @@ namespace Intersect_Character_Generator
 
 
         #region "Saving/Loading Classes"
-        public class Project
-        {
-            private string _projectPath = "";
-            public string ProjectPath
-            {
-                get
-                {
-                    return _projectPath;
-                }
-                set
-                {
-                    _projectPath = value;
-                    Current.saveStateToolStripMenuItem.Enabled = !string.IsNullOrEmpty(_projectPath);
-                }
-            }
-            public int Gender
-            {
-                get => frmGenerator.Current.rdoMale.Checked ? 0 : 1;
-                set
-                {
-                    if (value == 0)
-                        Current.rdoMale.Checked = true;
-                    else
-                        Current.rdoFemale.Checked = true;
-                }
-            }
-            public bool GenderLock
-            {
-                get => Current.picGenderLock.Tag != null;
-                set
-                {
-                    if (value)
-                    {
-                        Current.picGenderLock.BackgroundImage = Properties.Resources.font_awesome_4_7_0_lock_14_0_dcdcdc_none;
-                        Current.picGenderLock.Tag = 1;
-                    }
-                    else
-                    {
-                        Current.picGenderLock.BackgroundImage = Properties.Resources.font_awesome_4_7_0_unlock_14_0_dcdcdc_none;
-                        Current.picGenderLock.Tag = null;
-                    }
-                }
-            }
-            public int BackgroundColor
-            {
-                get
-                {
-                    return Current.chkTransparent.Checked ? Color.Transparent.ToArgb() : Current.btnBackgroundColor.BackColor.ToArgb();
-                }
-                set
-                {
-                    if (value == Color.Transparent.ToArgb())
-                    {
-                        Current.chkTransparent.Checked = true;
-                    }
-                    else
-                    {
-                        Current.chkTransparent.Checked = false;
-                        Current.btnBackgroundColor.BackColor = Color.FromArgb(value);
-                    }
-                }
-            }
-
-            //Layers -_-
-            public LayerSettings Body { get; set; } = new LayerSettings(0);
-            public LayerSettings Eyes { get; set; } = new LayerSettings(1);
-            public LayerSettings Hair { get; set; } = new LayerSettings(2);
-            public LayerSettings FacialHair { get; set; } = new LayerSettings(3);
-            public LayerSettings Headwear { get; set; } = new LayerSettings(4);
-            public LayerSettings Shirt { get; set; } = new LayerSettings(5);
-            public LayerSettings Shoulders { get; set; } = new LayerSettings(6);
-            public LayerSettings Gloves { get; set; } = new LayerSettings(7);
-            public LayerSettings Pants { get; set; } = new LayerSettings(8);
-            public LayerSettings Waist { get; set; } = new LayerSettings(9);
-            public LayerSettings Boots { get; set; } = new LayerSettings(10);
-            public LayerSettings Accessory1 { get; set; } = new LayerSettings(11);
-            public LayerSettings Accessory2 { get; set; } = new LayerSettings(12);
-            public LayerSettings Accessory3 { get; set; } = new LayerSettings(13);
-            public LayerSettings Accessory4 { get; set; } = new LayerSettings(14);
-
-            public bool ShirtTuckedIn
-            {
-                get => Current.chkPantsAfterShirt.Checked;
-                set => Current.chkPantsAfterShirt.Checked = value;
-            }
-            public bool PantsTuckedIn
-            {
-                get => Current.chkBootsAfterPants.Checked;
-                set => Current.chkBootsAfterPants.Checked = value;
-            }
-            public int Zoom
-            {
-                get => Current.trackZoom.Value;
-                set => Current.trackZoom.Value = value;
-            }
-            public string SaveFilePath
-            {
-                get => Current._saveSpriteDialog.FileName;
-                set => Current._saveSpriteDialog.FileName = value;
-            }
-        }
-        public class LayerSettings
-        {
-            public int Index { get; set; }
-            public LayerSettings(int i)
-            {
-                Index = i;
-            }
-
-            public string Graphic
-            {
-                get
-                {
-                    return Current._layers[Index].Get();
-                }
-                set
-                {
-                    Current._layers[Index].Set(value);
-                }
-            }
-
-            public int Hue
-            {
-                get
-                {
-                    return Current._layers[Index].GetHue();
-                }
-                set
-                {
-                    Current._layers[Index].SetHue(value);
-                }
-            }
-
-            public int HueIntensity
-            {
-                get
-                {
-                    return Current._layers[Index].GetHueIntensity();
-                }
-                set
-                {
-                    Current._layers[Index].SetHueIntensity(value);
-                }
-            }
-
-            public int Alpha
-            {
-                get
-                {
-                    return Current._layers[Index].GetAlpha();
-                }
-                set
-                {
-                    Current._layers[Index].SetAlpha(value);
-                }
-            }
-
-            public bool RandomizationLocked
-            {
-                get
-                {
-                    return Current._layers[Index].GetRandLock();
-                }
-                set
-                {
-                    Current._layers[Index].SetRandLock(value);
-                }
-            }
-
-
-        }
+        
+        
         #endregion
     }
 }

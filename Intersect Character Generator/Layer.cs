@@ -1,142 +1,113 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DarkUI.Controls;
-using System.IO;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using DarkUI.Controls;
+using Intersect_Character_Generator;
 
-namespace Intersect_Character_Generator
+namespace Intersect.CharacterGenerator
 {
     public class Layer
     {
+        public LayerSettings Settings { get; }
+
         public Dictionary<string, string> MaleParts = new Dictionary<string, string>();
         public Dictionary<string, string> FemaleParts = new Dictionary<string, string>();
 
-        private string directory;
-        private DarkComboBox cmbItems;
-        private DarkButton colorBtn;
-        private frmGenerator frmGenerator;
-        private bool maleSelected;
-        private ColorDialog colorDialog;
-        private TrackBar intensityBar;
-        private TrackBar alphaBar;
-        private PictureBox lockBox;
+        private string mDirectory;
+        private DarkComboBox mCmbItems;
+        private DarkButton mColorBtn;
+        private FrmGenerator mFrmGenerator;
+        private bool mAleSelected;
+        private ColorDialog mColorDialog;
+        private TrackBar mIntensityBar;
+        private TrackBar mAlphaBar;
+        private PictureBox mLockBox;
 
-        private Bitmap origGraphic;
-        private Bitmap alteredGraphic;
-        public string graphicPath = "";
+        private Bitmap mOriginalGraphic;
+        private Bitmap mAlteredGraphic;
+        public string GraphicPath = "";
 
-        public Layer(string folderName, DarkComboBox itemList, DarkButton colorButton, ColorDialog colorD, TrackBar intBar, TrackBar aBar,PictureBox lockPic, frmGenerator form)
+        public Layer(string folderName, DarkComboBox itemList, DarkButton colorButton, ColorDialog colorD, TrackBar intBar, TrackBar aBar,PictureBox lockPic, FrmGenerator form)
         {
+            this.Settings = new LayerSettings(this);
+
             if (!Directory.Exists("assets")) Directory.CreateDirectory("assets");
-            frmGenerator = form;
-            colorDialog = colorD;
-            intensityBar = intBar;
-            lockBox = lockPic;
-            alphaBar = aBar;
-            directory = folderName;
-            cmbItems = itemList;
-            colorBtn = colorButton;
+            mFrmGenerator = form;
+            mColorDialog = colorD;
+            mIntensityBar = intBar;
+            mLockBox = lockPic;
+            mAlphaBar = aBar;
+            mDirectory = folderName;
+            mCmbItems = itemList;
+            mColorBtn = colorButton;
             LoadItems();
             PopulateList(true);
-            cmbItems.SelectedIndexChanged += cmbItems_SelectedIndexChanged;
-            colorBtn.Click += btnColor_Click;
+            mCmbItems.SelectedIndexChanged += cmbItems_SelectedIndexChanged;
+            mColorBtn.Click += btnColor_Click;
             intBar.ValueChanged += intBar_ValueChanged;
-            alphaBar.ValueChanged += alphaBar_ValueChanged;
-            lockBox.Click += LockBox_Click;
+            mAlphaBar.ValueChanged += alphaBar_ValueChanged;
+            mLockBox.Click += LockBox_Click;
         }
 
-        public int GetWidth()
-        {
-            return origGraphic == null ? 0 : origGraphic.Width;
-        }
+        public int Width => mOriginalGraphic?.Width ?? 0;
 
-        public int GetHeight()
-        {
-            return origGraphic == null ? 0 : origGraphic.Height;
-        }
+        public int Height => mOriginalGraphic?.Height ?? 0;
 
-        public string Get()
+        public string Selected
         {
-            return cmbItems.Text;
-        }
-
-        public void Set(string graphic)
-        {
-            if (cmbItems.Items.Contains(graphic))
+            get => mCmbItems?.Text;
+            set
             {
-                cmbItems.SelectedIndex = cmbItems.Items.IndexOf(graphic);
+                if (!string.IsNullOrWhiteSpace(value) && (mCmbItems?.Items.Contains(value) ?? false))
+                {
+                    mCmbItems.SelectedIndex = mCmbItems.Items.IndexOf(value);
+                }
             }
         }
 
-        public int GetHue()
-        {
-            return colorBtn.BackColor.ToArgb();
-        }
+        public int Hue { get => mColorBtn.BackColor.ToArgb(); set => mColorBtn.BackColor = Color.FromArgb(value); }
 
-        public void SetHue(int value)
-        {
-            colorBtn.BackColor = Color.FromArgb(value);
-        }
+        public int Saturation { get => mIntensityBar.Value; set => mIntensityBar.Value = value; }
 
-        public int GetHueIntensity()
-        {
-            return intensityBar.Value;
-        }
+        public int Alpha { get => mAlphaBar.Value; set => mAlphaBar.Value = value; }
 
-        public void SetHueIntensity(int value)
+        public bool RandomizationLocked
         {
-            intensityBar.Value = value;
-        }
-
-        public int GetAlpha()
-        {
-            return alphaBar.Value;
-        }
-
-        public void SetAlpha(int value)
-        {
-            alphaBar.Value = value;
-        }
-
-        public bool GetRandLock()
-        {
-            return lockBox.Tag != null;
-        }
-
-        public void SetRandLock(bool value)
-        {
-            if (!value)
+            get => mLockBox.Tag != null;
+            set
             {
-                lockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_unlock_14_0_dcdcdc_none;
-                lockBox.Tag = null;
-            }
-            else
-            {
-                lockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_lock_14_0_dcdcdc_none;
-                lockBox.Tag = 1;
+                if (!value)
+                {
+                    mLockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_unlock_14_0_dcdcdc_none;
+                    mLockBox.Tag = null;
+                }
+                else
+                {
+                    mLockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_lock_14_0_dcdcdc_none;
+                    mLockBox.Tag = 1;
+                }
             }
         }
 
         public void Draw(Graphics g, int frameWidth, int frameHeight)
         {
-            if (origGraphic == null) return;
-            var img = (colorBtn.BackColor.ToArgb() == Color.White.ToArgb() ? origGraphic : alteredGraphic);
-            for (int x = 0; x < 4; x++)
+            if (mOriginalGraphic == null) return;
+            var img = (mColorBtn.BackColor.ToArgb() == Color.White.ToArgb() ? mOriginalGraphic : mAlteredGraphic);
+            for (var x = 0; x < 4; x++)
             {
-                for (int y = 0; y < 4; y++)
+                for (var y = 0; y < 4; y++)
                 {
                     float[][] matrixItems ={
                                 new float[] {1, 0, 0, 0, 0},
                                 new float[] {0, 1, 0, 0, 0},
                                 new float[] {0, 0, 1, 0, 0},
-                                new float[] {0, 0, 0, (100 - alphaBar.Value) / 100f, 0},
+                                new float[] {0, 0, 0, (100 - mAlphaBar.Value) / 100f, 0},
                                 new float[] {0, 0, 0, 0, 1}};
-                    ColorMatrix colorMatrix = new ColorMatrix(matrixItems);
+                    var colorMatrix = new ColorMatrix(matrixItems);
                     var imageAttributes = new ImageAttributes();
                     imageAttributes.SetColorMatrix(
                         colorMatrix,
@@ -150,66 +121,66 @@ namespace Intersect_Character_Generator
         private void cmbItems_SelectedIndexChanged(object sender, EventArgs e)
         {
             var redraw = false;
-            if (cmbItems.SelectedIndex == 0)
+            if (mCmbItems.SelectedIndex == 0)
             {
-                if (origGraphic != null)
+                if (mOriginalGraphic != null)
                 {
-                    origGraphic.Dispose();
-                    alteredGraphic.Dispose();
+                    mOriginalGraphic.Dispose();
+                    mAlteredGraphic.Dispose();
                     redraw = true;
                 }
-                origGraphic = null;
-                alteredGraphic = null;
-                graphicPath = "";
+                mOriginalGraphic = null;
+                mAlteredGraphic = null;
+                GraphicPath = "";
             }
             else
             {
-                Dictionary<string, string> partList = maleSelected ? MaleParts : FemaleParts;
-                if (partList.ContainsKey(cmbItems.Text))
+                var partList = mAleSelected ? MaleParts : FemaleParts;
+                if (partList.ContainsKey(mCmbItems.Text))
                 {
-                    if (graphicPath != partList[cmbItems.Text])
+                    if (GraphicPath != partList[mCmbItems.Text])
                     {
-                        graphicPath = partList[cmbItems.Text];
-                        origGraphic = new Bitmap(graphicPath);
-                        alteredGraphic = new Bitmap(origGraphic.Width, origGraphic.Height);
+                        GraphicPath = partList[mCmbItems.Text];
+                        mOriginalGraphic = new Bitmap(GraphicPath);
+                        mAlteredGraphic = new Bitmap(mOriginalGraphic.Width, mOriginalGraphic.Height);
                         ProcessHue();
                         redraw = true;
                     }
                 }
             }
-            if (redraw) frmGenerator.DrawCharacter();
+            if (redraw) mFrmGenerator.DrawCharacter();
         }
 
         private void ProcessHue()
         {
-            var btnBrightness = colorBtn.BackColor.GetBrightness();
-            var btnSat = colorBtn.BackColor.GetSaturation();
-            var btnHue = colorBtn.BackColor.GetHue();
-            var intensityVal = intensityBar.Value;
-            BitmapData origBmd = origGraphic.LockBits(new Rectangle(0, 0, origGraphic.Width, origGraphic.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, origGraphic.PixelFormat);
-            BitmapData alteredBmd = alteredGraphic.LockBits(new Rectangle(0, 0, alteredGraphic.Width, alteredGraphic.Height), System.Drawing.Imaging.ImageLockMode.ReadWrite, alteredGraphic.PixelFormat);
-            int PixelSize = 4;
+            var btnBrightness = mColorBtn.BackColor.GetBrightness();
+            var btnSat = mColorBtn.BackColor.GetSaturation();
+            var btnHue = mColorBtn.BackColor.GetHue();
+            var intensityVal = mIntensityBar.Value;
+            var origBmd = mOriginalGraphic.LockBits(new Rectangle(0, 0, mOriginalGraphic.Width, mOriginalGraphic.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, mOriginalGraphic.PixelFormat);
+            var alteredBmd = mAlteredGraphic.LockBits(new Rectangle(0, 0, mAlteredGraphic.Width, mAlteredGraphic.Height), System.Drawing.Imaging.ImageLockMode.ReadWrite, mAlteredGraphic.PixelFormat);
+            var pixelSize = 4;
 
             unsafe
             {
-                for (int y = 0; y < origBmd.Height; y++)
+                for (var y = 0; y < origBmd.Height; y++)
                 {
-                    byte* origRow = (byte*)origBmd.Scan0 + (y * origBmd.Stride);
-                    byte* alteredRow = (byte*)alteredBmd.Scan0 + (y * alteredBmd.Stride);
-                    for (int x = 0; x < origBmd.Width; x++)
+                    var origRow = (byte*)origBmd.Scan0 + (y * origBmd.Stride);
+                    var alteredRow = (byte*)alteredBmd.Scan0 + (y * alteredBmd.Stride);
+                    for (var x = 0; x < origBmd.Width; x++)
                     {
-                        var clr = Color.FromArgb(origRow[x * PixelSize + 3], origRow[x * PixelSize + 2], origRow[x * PixelSize + 1], origRow[x * PixelSize]);
+                        var clr = Color.FromArgb(origRow[x * pixelSize + 3], origRow[x * pixelSize + 2], origRow[x * pixelSize + 1], origRow[x * pixelSize]);
                         var alteredColor = ColorFromAhsb(clr.A, btnHue, btnSat, clr.GetBrightness() * btnBrightness + ((100 - intensityVal) / 100f));
-                        alteredRow[x * PixelSize] = alteredColor.B;   //Blue  0-255
-                        alteredRow[x * PixelSize + 1] = alteredColor.G; //Green 0-255
-                        alteredRow[x * PixelSize + 2] = alteredColor.R;   //Red   0-255
-                        alteredRow[x * PixelSize + 3] = alteredColor.A;  //Alpha 0-255
+                        alteredRow[x * pixelSize] = alteredColor.B;   //Blue  0-255
+                        alteredRow[x * pixelSize + 1] = alteredColor.G; //Green 0-255
+                        alteredRow[x * pixelSize + 2] = alteredColor.R;   //Red   0-255
+                        alteredRow[x * pixelSize + 3] = alteredColor.A;  //Alpha 0-255
                     }
                 }
             }
 
-            origGraphic.UnlockBits(origBmd);
-            alteredGraphic.UnlockBits(alteredBmd);
+            mOriginalGraphic.UnlockBits(origBmd);
+            mAlteredGraphic.UnlockBits(alteredBmd);
         }
 
 
@@ -296,7 +267,7 @@ namespace Intersect_Character_Generator
         {
             MaleParts.Clear();
             FemaleParts.Clear();
-            var folder = directory;
+            var folder = mDirectory;
             if (!Directory.Exists(Path.Combine("assets", folder))) Directory.CreateDirectory(Path.Combine("assets", folder));
             AddImagesToList(Path.Combine("assets", folder, "male"), MaleParts);
             AddImagesToList(Path.Combine("assets", folder, "female"), FemaleParts);
@@ -308,27 +279,27 @@ namespace Intersect_Character_Generator
 
         public void PopulateList(bool male)
         {
-            maleSelected = male;
-            cmbItems.Items.Clear();
-            cmbItems.Items.Add("None");
+            mAleSelected = male;
+            mCmbItems.Items.Clear();
+            mCmbItems.Items.Add("None");
             if (male)
             {
-                cmbItems.Items.AddRange(MaleParts.Keys.ToArray());
+                mCmbItems.Items.AddRange(MaleParts.Keys.ToArray());
             }
             else
             {
-                cmbItems.Items.AddRange(FemaleParts.Keys.ToArray());
+                mCmbItems.Items.AddRange(FemaleParts.Keys.ToArray());
             }
-            cmbItems.SelectedIndex = 0;
-            if (cmbItems.Items.IndexOf("base") > 0) cmbItems.SelectedIndex = cmbItems.Items.IndexOf("base");
-            if (cmbItems.Items.IndexOf("Base") > 0) cmbItems.SelectedIndex = cmbItems.Items.IndexOf("Base");
+            mCmbItems.SelectedIndex = 0;
+            if (mCmbItems.Items.IndexOf("base") > 0) mCmbItems.SelectedIndex = mCmbItems.Items.IndexOf("base");
+            if (mCmbItems.Items.IndexOf("Base") > 0) mCmbItems.SelectedIndex = mCmbItems.Items.IndexOf("Base");
             cmbItems_SelectedIndexChanged(null, null);
         }
 
         public void Randomize(Random rand)
         {
-            if (lockBox.Tag == null)
-                cmbItems.SelectedIndex = rand.Next(0, cmbItems.Items.Count);
+            if (mLockBox.Tag == null)
+                mCmbItems.SelectedIndex = rand.Next(0, mCmbItems.Items.Count);
         }
 
         private void AddImagesToList(string folder, Dictionary<string, string> parts)
@@ -358,37 +329,37 @@ namespace Intersect_Character_Generator
 
         private void btnColor_Click(object sender, EventArgs e)
         {
-            if (colorDialog.ShowDialog() == DialogResult.OK)
+            if (mColorDialog.ShowDialog() == DialogResult.OK)
             {
-                ((Button)sender).BackColor = colorDialog.Color;
+                ((Button)sender).BackColor = mColorDialog.Color;
                 ProcessHue();
-                frmGenerator.DrawCharacter();
+                mFrmGenerator.DrawCharacter();
             }
         }
 
         private void LockBox_Click(object sender, EventArgs e)
         {
-            if (lockBox.Tag != null)
+            if (mLockBox.Tag != null)
             {
-                lockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_unlock_14_0_dcdcdc_none;
-                lockBox.Tag = null;
+                mLockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_unlock_14_0_dcdcdc_none;
+                mLockBox.Tag = null;
             }
             else
             {
-                lockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_lock_14_0_dcdcdc_none;
-                lockBox.Tag = 1;
+                mLockBox.BackgroundImage = Properties.Resources.font_awesome_4_7_0_lock_14_0_dcdcdc_none;
+                mLockBox.Tag = 1;
             }
         }
 
         private void intBar_ValueChanged(object sender, EventArgs e)
         {
             ProcessHue();
-            frmGenerator.DrawCharacter();
+            mFrmGenerator.DrawCharacter();
         }
 
         private void alphaBar_ValueChanged(object sender, EventArgs e)
         {
-            frmGenerator.DrawCharacter();
+            mFrmGenerator.DrawCharacter();
         }
     }
 }

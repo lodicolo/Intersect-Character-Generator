@@ -1777,10 +1777,13 @@
         private DarkUI.Controls.DarkGroupBox grpOptions;
         private System.Windows.Forms.Panel pnlContainer;
         private System.Windows.Forms.PictureBox picSprite;
-        private DarkUI.Controls.DarkCheckBox chkTransparent;
+        /* TODO: private */
+        public DarkUI.Controls.DarkCheckBox chkTransparent;
         private System.Windows.Forms.Label lblBackground;
-        private DarkUI.Controls.DarkRadioButton rdoFemale;
-        private DarkUI.Controls.DarkRadioButton rdoMale;
+        /* TODO: private */
+        public DarkUI.Controls.DarkRadioButton rdoFemale;
+        /* TODO: private */
+        public DarkUI.Controls.DarkRadioButton rdoMale;
         private System.Windows.Forms.Label lblGender;
         private DarkUI.Controls.DarkButton btnBodyHue;
         private DarkUI.Controls.DarkComboBox cmbBody;
@@ -1803,8 +1806,10 @@
         private DarkUI.Controls.DarkButton btnWaistHue;
         private DarkUI.Controls.DarkComboBox cmbWaist;
         private System.Windows.Forms.Label label16;
-        private DarkUI.Controls.DarkCheckBox chkBootsAfterPants;
-        private DarkUI.Controls.DarkCheckBox chkPantsAfterShirt;
+        /* TODO: private */
+        public DarkUI.Controls.DarkCheckBox chkBootsAfterPants;
+        /* TODO: private */
+        public DarkUI.Controls.DarkCheckBox chkPantsAfterShirt;
         private DarkUI.Controls.DarkButton btnPantsHue;
         private DarkUI.Controls.DarkComboBox cmbPants;
         private System.Windows.Forms.Label label8;
@@ -1830,10 +1835,12 @@
         private DarkUI.Controls.DarkComboBox cmbEyes;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private DarkUI.Controls.DarkButton btnBackgroundColor;
+        /* TODO: private */
+        public DarkUI.Controls.DarkButton btnBackgroundColor;
         private DarkUI.Controls.DarkGroupBox grpExport;
         private DarkUI.Controls.DarkButton btnExport;
-        private System.Windows.Forms.TrackBar trackZoom;
+        /* TODO: private */
+        public System.Windows.Forms.TrackBar trackZoom;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.ColorDialog colorDialog;
         private System.Windows.Forms.TrackBar trkBodyHueIntensity;
@@ -1890,7 +1897,8 @@
         private System.Windows.Forms.PictureBox picHairLock;
         private System.Windows.Forms.ToolStripMenuItem supportThreadToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem gitHubSourceToolStripMenuItem;
-        private System.Windows.Forms.PictureBox picGenderLock;
+        /* TODO: private */
+        public System.Windows.Forms.PictureBox picGenderLock;
     }
 }
 

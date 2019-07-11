@@ -23,7 +23,7 @@ namespace Intersect.CharacterGenerator
 
         #region Temporary Variables
 
-        private SaveFileDialog mSaveSpriteDialog;
+        /* TODO: private */ public SaveFileDialog mSaveSpriteDialog;
         private SaveFileDialog mSaveProjectDialog;
         private OpenFileDialog mOpenProjectDialog;
 
@@ -175,7 +175,8 @@ namespace Intersect.CharacterGenerator
             // If the file name is not an empty string open it for saving.  
             if (mSaveProjectDialog.FileName != "")
             {
-                mProject.ProjectPath = mSaveProjectDialog.FileName;
+                mProject.Path = mSaveProjectDialog.FileName;
+                saveStateToolStripMenuItem.Enabled = !string.IsNullOrWhiteSpace(mSaveProjectDialog.FileName);
                 var json = JsonConvert.SerializeObject(mProject, Formatting.Indented);
                 File.WriteAllText(mSaveProjectDialog.FileName, json);
             }
@@ -186,8 +187,9 @@ namespace Intersect.CharacterGenerator
             {
                 var json = File.ReadAllText(mOpenProjectDialog.FileName);
                 JsonConvert.PopulateObject(json, mProject, new JsonSerializerSettings() { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                mProject.ProjectPath = mOpenProjectDialog.FileName;
-                this.Text = "Intersect Character Generator - " + mProject.ProjectPath;
+                mProject.Path = mOpenProjectDialog.FileName;
+                saveStateToolStripMenuItem.Enabled = !string.IsNullOrWhiteSpace(mOpenProjectDialog.FileName);
+                this.Text = "Intersect Character Generator - " + mProject.Path;
                 DrawCharacter();
             }
         }
@@ -195,8 +197,8 @@ namespace Intersect.CharacterGenerator
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var json = JsonConvert.SerializeObject(mProject, Formatting.Indented);
-            File.WriteAllText(mProject.ProjectPath, json);
-            this.Text = "Intersect Character Generator - " + mProject.ProjectPath;
+            File.WriteAllText(mProject.Path, json);
+            this.Text = "Intersect Character Generator - " + mProject.Path;
         }
         #endregion
 

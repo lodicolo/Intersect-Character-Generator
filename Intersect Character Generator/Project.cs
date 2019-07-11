@@ -4,16 +4,8 @@ namespace Intersect.CharacterGenerator
 {
     public class Project
     {
-        private string mProjectPath = "";
-        public string ProjectPath
-        {
-            get => mProjectPath;
-            set
-            {
-                mProjectPath = value;
-                FrmGenerator.Current.saveStateToolStripMenuItem.Enabled = !string.IsNullOrEmpty(mProjectPath);
-            }
-        }
+        public string Path { get; set; } = "";
+
         public int Gender
         {
             get => FrmGenerator.Current.rdoMale?.Checked ?? false ? 0 : 1;
